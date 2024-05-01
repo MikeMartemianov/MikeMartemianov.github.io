@@ -121,49 +121,6 @@
 
         }
 
-        async function loadRandomTerrain() 
-        {
-            let index = ++terrains_loaded;
-            let color = getColor(index);
-
-            width = 256; 
-            height = 256;
-            
-            // Create the terrain plane
-            var geometry = new THREE.PlaneGeometry(width, width, 255, (height-1));
-
-            // Modify the z position of the geometry based on the image luma values
-            for (let i = 0; i < geometry.attributes.position.count; i++) 
-            {
-                var p = geometry.attributes.position;
-                var x = i % width, y = Math.floor(i / width);
-                var pixelValue = getRandom(0,511);
-                p.setZ(i, (pixelValue - 512)*0.15);
-            }
-
-            geometry.attributes.position.needsUpdate = true;
-            geometry.computeVertexNormals();
-
-            // Create the mesh with the modified geometry
-            var material = new THREE.MeshPhongMaterial({ color: color, transparent: true, opacity: 0.5 });
-            var mesh = new THREE.Mesh(geometry, material);
-            mesh.position.set(+1,+1,0);
-            mesh.rotation.x = Math.PI / 2; 
-            mesh.rotation.z = Math.PI; 
-            mesh.scale.set(0.01,0.01,0.01);
-            if (index > 1) mesh.visible = false;
-            scene.add(mesh);
-            terrains[index] = mesh; 
-            {
-                var planePosition = new THREE.Vector3();
-                mesh.getWorldPosition(planePosition);
-                camera.position.set(-2,+2,+2);
-                camera.lookAt(planePosition);
-                controls.target = planePosition;
-                print_console(`\n#${index}: Play! \n`, color, index);
-            }
-        }
-
         function onWindowResize() 
         {
             camera.aspect = window.innerWidth / window.innerHeight;
