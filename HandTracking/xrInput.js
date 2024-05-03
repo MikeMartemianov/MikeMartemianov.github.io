@@ -65,9 +65,7 @@ export class XrInput {
         // Controller
         const controllerGrip = xr.getControllerGrip(index);
         const controllerModel = this._controllerModelFactory.createControllerModel(controllerGrip);
-        controllerGrip.add(controllerModel);
         const axis = new THREE.AxesHelper(0.2)
-        controllerModel.add(axis);
         this.context.scene.add(controllerGrip);
 
         // Hand
