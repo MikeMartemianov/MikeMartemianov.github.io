@@ -32,7 +32,7 @@
         </a-camera>
         <a-entity id="ar-button" geometry="shape: cylinder; radius: 0.1; height: 0.5" material="color: blue" position="-1 1 0">
         </a-entity>
-        <a-entity id="text_console" position="0 0 0" width="100"></a-entity>
+        <a-entity id="text_console" position="0 0 0" width="100" ></a-entity>
     </a-scene>
 
     <script>
@@ -90,7 +90,6 @@
             document.addEventListener('keydown', function(event) 
             { 
                 print_console(`\n#${index}: Play! \n`);
-                loadRandomTerrain(); // just to stitch to keys 1,2,3...
             });       
         }
 
