@@ -21,19 +21,16 @@
 
 <body>
 
-    <a-scene>
+    <a-scene webxr="requiredFeatures: hand-tracking">
         <a-camera position="0 1.6 0" look-controls="true" wasd-controls="false">
-            <a-cursor 
-                color="yellow" 
-                fuse="true" 
-                fuse-timeout="1500"
-                raycaster="objects: .clickable;">
-            </a-cursor>
+            <a-cursor color="yellow" fuse="true" fuse-timeout="1500" raycaster="objects: .clickable;"></a-cursor>
         </a-camera>
-        <a-entity id="ar-button" geometry="shape: cylinder; radius: 0.1; height: 0.5" material="color: blue" position="-1 1 0">
-        </a-entity>
-        <a-entity id="text_console" position="0 0 0" width="100" ></a-entity>
+        <a-entity hand-controls="hand: left" raycaster="objects: .clickable;"></a-entity>
+        <a-entity hand-controls="hand: right" raycaster="objects: .clickable;"></a-entity>
+        <a-entity id="ar-button" geometry="shape: cylinder; radius: 0.1; height: 0.5" material="color: blue" position="-1 1 0"></a-entity>
+        <a-entity id="text_console" position="2 3 -3" width="100"></a-entity>
     </a-scene>
+    
 
     <script>
         var scene, camera, renderer, controls;
