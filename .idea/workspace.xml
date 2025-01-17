@@ -5,29 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="778a368b-e12e-43e4-9bc6-7e1744616f48" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/WebXRExampleGame/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/HandTracking/.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/HandTracking/LICENSE" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/HandTracking/README.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/HandTracking/context.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/HandTracking/default.css" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/HandTracking/default.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/HandTracking/index.html" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/HandTracking/package.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/HandTracking/pointer.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/HandTracking/vectorDamper.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/HandTracking/xrGestureTracker.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/HandTracking/xrHandControllerInput.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/HandTracking/xrHead.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/HandTracking/xrInput.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/HandTracking/xrMechanicalControllerInput.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/WebXR/index.html" beforeDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/WebXRExampleGame/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/WebXRExampleGame/index.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/WebXRExampleGame/main.js" beforeDir="false" afterPath="$PROJECT_DIR$/WebXRExampleGame/main.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/WebXRExampleProject/README.md" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -128,7 +108,7 @@
       <option name="presentableId" value="Default" />
       <updated>1737092043774</updated>
       <workItem from="1737092045209" duration="2387000" />
-      <workItem from="1737122879611" duration="8559000" />
+      <workItem from="1737122879611" duration="8883000" />
     </task>
     <servers />
   </component>
