@@ -7,12 +7,13 @@ const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerH
 // Рендерер
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.xr.enabled = true; // Включаем поддержку WebXR
+renderer.xr.enabled = true; // Включить WebXR
 document.body.appendChild(renderer.domElement);
+
 
 // Добавляем кнопку для входа в VR
 const vrButton = THREE.XRButton.createButton(renderer);
-document.body.appendChild(vrButton); // Добавляем кнопку на страницу
+document.body.appendChild(vrButton);
 
 // Создаем объект: вращающийся куб
 const geometry = new THREE.BoxGeometry();
