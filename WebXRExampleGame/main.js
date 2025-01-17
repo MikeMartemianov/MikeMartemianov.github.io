@@ -10,13 +10,17 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.xr.enabled = true; // Включаем поддержку WebXR
 document.body.appendChild(renderer.domElement);
 
-// Добавляем куб
+// Добавляем кнопку для входа в VR
+const vrButton = THREE.XRButton.createButton(renderer);
+document.body.appendChild(vrButton); // Добавляем кнопку на страницу
+
+// Создаем объект: вращающийся куб
 const geometry = new THREE.BoxGeometry();
 const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
 const cube = new THREE.Mesh(geometry, material);
 scene.add(cube);
 
-// Позиционируем камеру
+// Позиция камеры
 camera.position.z = 5;
 
 // Анимация
@@ -26,11 +30,8 @@ function animate() {
   renderer.render(scene, camera);
 }
 
-// Включаем WebXR цикл анимации
+// Устанавливаем цикл анимации с поддержкой WebXR
 renderer.setAnimationLoop(animate);
-
-// Добавляем кнопку для входа в WebXR
-document.body.appendChild(THREE.XRButton.createButton(renderer));
 
 // Обработка изменения размера окна
 window.addEventListener('resize', () => {
