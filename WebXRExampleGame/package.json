@@ -1,0 +1,15 @@
+{
+  "name": "WebXRGame",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "node_modules/.bin/vite",
+    "build": "node_modules/.bin/vite build",
+    "preview": "node_modules/.bin/vite preview"
+  },
+  "devDependencies": {
+    "prettier": "^3.3.1",
+    "vite": "^5.1.6"
+  }
+}
