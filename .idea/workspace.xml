@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="778a368b-e12e-43e4-9bc6-7e1744616f48" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/WebXRExampleGame/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/HandTracking/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/HandTracking/LICENSE" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/HandTracking/README.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/HandTracking/context.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/HandTracking/default.css" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/HandTracking/default.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/HandTracking/index.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/HandTracking/package.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/HandTracking/pointer.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/HandTracking/vectorDamper.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/HandTracking/xrGestureTracker.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/HandTracking/xrHandControllerInput.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/HandTracking/xrHead.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/HandTracking/xrInput.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/HandTracking/xrMechanicalControllerInput.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/WebXR/index.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/WebXRExampleGame/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/WebXRExampleGame/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/WebXRExampleGame/main.js" beforeDir="false" afterPath="$PROJECT_DIR$/WebXRExampleGame/main.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/WebXRExampleProject/README.md" beforeDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <excluded-from-favorite>
+      <branch-storage>
+        <map>
+          <entry type="LOCAL">
+            <value>
+              <list>
+                <branch-info repo="$PROJECT_DIR$" source="master" />
+              </list>
+            </value>
+          </entry>
+        </map>
+      </branch-storage>
+    </excluded-from-favorite>
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="origin" />
+      </map>
+    </option>
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;MikeMartemianov&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/MikeMartemianov/MikeMartemianov.github.io&quot;,
+    &quot;accountId&quot;: &quot;c97d19c7-6ec9-4932-b352-ad10d0787ee2&quot;
+  }
+}</component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 8
+}</component>
+  <component name="ProjectId" id="2rk983u4idEHg7EMmaeVK5Q4nRM" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;HTTP Request.rest-api | #1.executor&quot;: &quot;Run&quot;,
+    &quot;JavaScript Debug.index.html.executor&quot;: &quot;Run&quot;,
+    &quot;Node.js.main.js.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_interpreter_path&quot;: &quot;C:/Users/mikem/AppData/Roaming/JetBrains/WebStorm2024.3/node/versions/22.13.0/node&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;onboarding.tips.debug.path&quot;: &quot;C:/Users/mikem/WebstormProjects/WebXRGame/src/main.js&quot;,
+    &quot;prettierjs.PrettierConfiguration.Package&quot;: &quot;C:\\Users\\mikem\\WebstormProjects\\WebXRGame\\WebXRExampleGame\\node_modules\\prettier&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.editor&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  }
+}</component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\mikem\WebstormProjects\WebXRGame\WebXRExampleGame" />
+      <recent name="C:\Users\mikem\WebstormProjects\WebXRGame" />
+    </key>
+  </component>
+  <component name="RunManager">
+    <configuration name="rest-api | #1" type="HttpClient.HttpRequestRunConfigurationType" factoryName="HTTP Request" temporary="true" nameIsGenerated="true" path="$APPLICATION_CONFIG_DIR$/scratches/rest-api.http" executionIdentifier="#1" runType="Run single request">
+      <method v="2" />
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="HTTP Request.rest-api | #1" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-js-predefined-d6986cc7102b-deb605915726-JavaScript-WS-243.22562.222" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="778a368b-e12e-43e4-9bc6-7e1744616f48" name="Changes" comment="" />
+      <created>1737092043774</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1737092043774</updated>
+      <workItem from="1737092045209" duration="2387000" />
+      <workItem from="1737122879611" duration="8559000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+</project>
