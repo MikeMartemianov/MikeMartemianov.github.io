@@ -1,13 +1,28 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>WebXR Project</title>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.157.0/build/three.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.157.0/examples/js/WebXR.js"></script>
-  <script src="main.js" defer></script> <!-- Подключаем ваш JavaScript файл -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebXR Project</title>
+    <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.141.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.157.0/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.157.0/examples/js/WebXR.js"></script>
+    <script src="main.js" defer></script> <!-- Подключаем JavaScript файл -->
 </head>
 <body>
+<a-scene webxr="requiredFeatures: hand-tracking" embedded>
+    <a-camera position="0 1.6 0" look-controls="true" wasd-controls="false">
+        <a-cursor color="yellow" fuse="true" fuse-timeout="1500" raycaster="objects: .clickable;"></a-cursor>
+    </a-camera>
+    <a-entity environment="preset: forest; groundColor: #445; skyColor: #88c;">
+    </a-entity>
+    <a-entity hand-controls="hand: left" raycaster="objects: .clickable;"></a-entity>
+    <a-entity hand-controls="hand: right" raycaster="objects: .clickable;"></a-entity>
+    <a-entity id="ar-button" geometry="primitive: cylinder; radius: 0.1; height: 0.5" material="color: blue"
+              position="-1 1 0"></a-entity>
+    <a-entity id="text_console" position="2 3 -3" geometry="primitive: plane; height: 0.5; width: 2;"
+              material="color: white" text="value: Console Output; color: black; align: center;"></a-entity>
+</a-scene>
 </body>
 </html>
