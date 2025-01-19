@@ -12,26 +12,20 @@
  */
 
 /* wle:auto-imports:start */
-import {Cursor} from '@wonderlandengine/components';
-import {CursorTarget} from '@wonderlandengine/components';
-import {FingerCursor} from '@wonderlandengine/components';
-import {HandTracking} from '@wonderlandengine/components';
-import {HowlerAudioListener} from '@wonderlandengine/components';
+import {HitTestLocation} from '@wonderlandengine/components';
 import {MouseLookComponent} from '@wonderlandengine/components';
-import {PlayerHeight} from '@wonderlandengine/components';
-import {TeleportComponent} from '@wonderlandengine/components';
-import {VrModeActiveSwitch} from '@wonderlandengine/components';
-import {ButtonComponent} from './button.js';
+import {WasdControlsComponent} from '@wonderlandengine/components';
+import {SpawnMeshOnSelect} from './spawn-mesh-on-select.js';
 /* wle:auto-imports:end */
 
 import {loadRuntime} from '@wonderlandengine/api';
 
 /* wle:auto-constants:start */
 const Constants = {
-    ProjectName: 'MRWorld',
+    ProjectName: 'MyWonderland',
     RuntimeBaseName: 'WonderlandRuntime',
     WebXRRequiredFeatures: ['local',],
-    WebXROptionalFeatures: ['local','local-floor','hand-tracking','hit-test',],
+    WebXROptionalFeatures: ['local','hand-tracking','hit-test',],
 };
 const RuntimeOptions = {
     physx: false,
@@ -81,16 +75,10 @@ if (document.readyState === 'loading') {
 }
 
 /* wle:auto-register:start */
-engine.registerComponent(Cursor);
-engine.registerComponent(CursorTarget);
-engine.registerComponent(FingerCursor);
-engine.registerComponent(HandTracking);
-engine.registerComponent(HowlerAudioListener);
+engine.registerComponent(HitTestLocation);
 engine.registerComponent(MouseLookComponent);
-engine.registerComponent(PlayerHeight);
-engine.registerComponent(TeleportComponent);
-engine.registerComponent(VrModeActiveSwitch);
-engine.registerComponent(ButtonComponent);
+engine.registerComponent(WasdControlsComponent);
+engine.registerComponent(SpawnMeshOnSelect);
 /* wle:auto-register:end */
 
 try {

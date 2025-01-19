@@ -10173,42 +10173,6 @@ __decorate4([
   property.object()
 ], DebugObject.prototype, "obj", void 0);
 
-// node_modules/@wonderlandengine/components/dist/finger-cursor.js
-var FingerCursor = class extends Component3 {
-  init() {
-    this.lastTarget = null;
-  }
-  start() {
-    this.tip = this.object.getComponent("collision");
-  }
-  update() {
-    const overlaps = this.tip.queryOverlaps();
-    let overlapFound = null;
-    for (let i = 0; i < overlaps.length; ++i) {
-      const o = overlaps[i].object;
-      const target = o.getComponent("cursor-target");
-      if (target) {
-        if (!target.equals(this.lastTarget)) {
-          target.onHover(o, this);
-          target.onClick(o, this);
-        }
-        overlapFound = target;
-        break;
-      }
-    }
-    if (!overlapFound) {
-      if (this.lastTarget)
-        this.lastTarget.onUnhover(this.lastTarget.object, this);
-      this.lastTarget = null;
-      return;
-    } else {
-      this.lastTarget = overlapFound;
-    }
-  }
-};
-__publicField(FingerCursor, "TypeName", "finger-cursor");
-__publicField(FingerCursor, "Properties", {});
-
 // node_modules/@wonderlandengine/components/dist/fixed-foveation.js
 var FixedFoveation = class extends Component3 {
   start() {
@@ -12713,91 +12677,37 @@ __decorate11([
   property.float(0.9)
 ], OrbitalCamera.prototype, "damping", void 0);
 
-// js/button.js
-function hapticFeedback(object, strength, duration) {
-  const input = object.getComponent(InputComponent);
-  if (input && input.xrInputSource) {
-    const gamepad = input.xrInputSource.gamepad;
-    if (gamepad && gamepad.hapticActuators)
-      gamepad.hapticActuators[0].pulse(strength, duration);
-  }
-}
-var ButtonComponent = class extends Component3 {
-  static onRegister(engine2) {
-    engine2.registerComponent(HowlerAudioSource);
-    engine2.registerComponent(CursorTarget);
-  }
-  /* Position to return to when "unpressing" the button */
-  returnPos = new Float32Array(3);
+// js/spawn-mesh-on-select.js
+var SpawnMeshOnSelect = class extends Component3 {
   start() {
-    this.mesh = this.buttonMeshObject.getComponent(MeshComponent);
-    this.defaultMaterial = this.mesh.material;
-    this.buttonMeshObject.getTranslationLocal(this.returnPos);
-    this.target = this.object.getComponent(CursorTarget) || this.object.addComponent(CursorTarget);
-    this.soundClick = this.object.addComponent(HowlerAudioSource, {
-      src: "sfx/click.wav",
-      spatial: true
-    });
-    this.soundUnClick = this.object.addComponent(HowlerAudioSource, {
-      src: "sfx/unclick.wav",
-      spatial: true
-    });
+    this.engine.onXRSessionStart.add(this.onXRSessionStart.bind(this));
   }
-  onActivate() {
-    this.target.onHover.add(this.onHover);
-    this.target.onUnhover.add(this.onUnhover);
-    this.target.onDown.add(this.onDown);
-    this.target.onUp.add(this.onUp);
+  onXRSessionStart(s) {
+    s.addEventListener("select", this.spawnMesh.bind(this));
   }
-  onDeactivate() {
-    this.target.onHover.remove(this.onHover);
-    this.target.onUnhover.remove(this.onUnhover);
-    this.target.onDown.remove(this.onDown);
-    this.target.onUp.remove(this.onUp);
+  spawnMesh() {
+    const spawnedObject = this.engine.scene.addObject();
+    spawnedObject.setTransformLocal(this.object.getTransformWorld()).scale([0.25, 0.25, 0.25]).translate([0, 0.25, 0]);
+    const mesh = spawnedObject.addComponent(MeshComponent);
+    mesh.material = this.material;
+    mesh.mesh = this.mesh;
+    mesh.active = true;
   }
-  /* Called by 'cursor-target' */
-  onHover = (_, cursor) => {
-    this.mesh.material = this.hoverMaterial;
-    if (cursor.type === "finger-cursor") {
-      this.onDown(_, cursor);
-    }
-    hapticFeedback(cursor.object, 0.5, 50);
-  };
-  /* Called by 'cursor-target' */
-  onDown = (_, cursor) => {
-    this.soundClick.play();
-    this.buttonMeshObject.translate([0, -0.1, 0]);
-    hapticFeedback(cursor.object, 1, 20);
-  };
-  /* Called by 'cursor-target' */
-  onUp = (_, cursor) => {
-    this.soundUnClick.play();
-    this.buttonMeshObject.setTranslationLocal(this.returnPos);
-    hapticFeedback(cursor.object, 0.7, 20);
-  };
-  /* Called by 'cursor-target' */
-  onUnhover = (_, cursor) => {
-    this.mesh.material = this.defaultMaterial;
-    if (cursor.type === "finger-cursor") {
-      this.onUp(_, cursor);
-    }
-    hapticFeedback(cursor.object, 0.3, 50);
-  };
 };
-__publicField(ButtonComponent, "TypeName", "button");
-__publicField(ButtonComponent, "Properties", {
-  /** Object that has the button's mesh attached */
-  buttonMeshObject: Property.object(),
-  /** Material to apply when the user hovers the button */
-  hoverMaterial: Property.material()
+__publicField(SpawnMeshOnSelect, "TypeName", "spawn-mesh-on-select");
+__publicField(SpawnMeshOnSelect, "Properties", {
+  /* The mesh to spawn */
+  mesh: Property.mesh(),
+  /* The material to spawn the mesh with */
+  material: Property.material()
 });
 
 // js/index.js
 var Constants = {
-  ProjectName: "MRWorld",
+  ProjectName: "MyWonderland",
   RuntimeBaseName: "WonderlandRuntime",
   WebXRRequiredFeatures: ["local"],
-  WebXROptionalFeatures: ["local", "local-floor", "hand-tracking", "hit-test"]
+  WebXROptionalFeatures: ["local", "hand-tracking", "hit-test"]
 };
 var RuntimeOptions = {
   physx: false,
@@ -12836,16 +12746,10 @@ if (document.readyState === "loading") {
 } else {
   setupButtonsXR();
 }
-engine.registerComponent(Cursor);
-engine.registerComponent(CursorTarget);
-engine.registerComponent(FingerCursor);
-engine.registerComponent(HandTracking);
-engine.registerComponent(HowlerAudioListener);
+engine.registerComponent(HitTestLocation);
 engine.registerComponent(MouseLookComponent);
-engine.registerComponent(PlayerHeight);
-engine.registerComponent(TeleportComponent);
-engine.registerComponent(VrModeActiveSwitch);
-engine.registerComponent(ButtonComponent);
+engine.registerComponent(WasdControlsComponent);
+engine.registerComponent(SpawnMeshOnSelect);
 try {
   await engine.loadMainScene(`${Constants.ProjectName}.bin`);
 } catch (e) {
@@ -12876,4 +12780,4 @@ howler/dist/howler.js:
    *  MIT License
    *)
 */
-//# sourceMappingURL=MRWorld-bundle.js.map
+//# sourceMappingURL=MyWonderland-bundle.js.map
