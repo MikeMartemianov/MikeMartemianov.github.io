@@ -1,1 +1,1546 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <title>Бесконечная платформа — полёт + перетаскивание (моб.)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    html,body{
+      height:100%;
+      margin:0;
+      background:#0b1020;
+      color:#ddd;
+      font-family:'Inter', Arial, sans-serif;
+      overflow: hidden;
+    }
+    #app{
+      position:fixed;
+      inset:0;
+      display:flex;
+      flex-direction:column;
+    }
+    canvas{
+      display:block;
+      width:100%;
+      height:100%;
+    }
+    .hud{
+      position:fixed;
+      right:10px;
+      top:10px;
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      z-index:20;
+    }
+    .btn{
+      background:rgba(0,0,0,0.4);
+      backdrop-filter:blur(6px);
+      -webkit-backdrop-filter:blur(6px);
+      border:1px solid rgba(255,255,255,0.06);
+      padding:8px 10px;
+      border-radius:10px;
+      color:#fff;
+      font-size:14px;
+      font-weight: 500;
+      cursor: pointer;
+      user-select: none;
+      transition: background 0.2s, border-color 0.2s, color 0.2s;
+    }
+    .btn:active {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+    .btn.active { /* Для активных режимов, например, создания */
+        color: #ffcc00;
+        border-color: #ffcc00;
+    }
+    .small{
+      padding:6px 8px;
+      font-size:13px;
+    }
+    #joystick{
+      position:fixed;
+      left:12px;
+      bottom:12px;
+      width:120px;
+      height:120px;
+      border-radius:60px;
+      background:rgba(255,255,255,0.04);
+      z-index:20;
+      touch-action:none;
+      user-select: none;
+    }
+    #joystick::before {
+      content: '';
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 50px; /* Немного уменьшил */
+      height: 50px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      transition: transform 0.1s;
+    }
+    #thruster{
+      position:fixed;
+      right:12px;
+      bottom:12px;
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      z-index:20;
+      user-select: none;
+    }
+    .thr-btn{
+      width:72px;
+      height:48px;
+      border-radius:8px;
+      background:rgba(255,255,255,0.04);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      touch-action:none;
+      color: #fff;
+      font-size: 20px;
+      transition: background 0.1s;
+    }
+    .thr-btn:active {
+      background: rgba(255, 255, 255, 0.1);
+    }
+    #editorPanel{
+      position:fixed;
+      left:50%;
+      top:8px;
+      transform:translateX(-50%);
+      background:rgba(0,0,0,0.55);
+      backdrop-filter:blur(6px);
+      -webkit-backdrop-filter:blur(6px);
+      padding:10px;
+      border-radius:10px;
+      z-index:30;
+      display:flex;
+      gap:8px;
+      align-items:center;
+    }
+    label{
+      font-size:13px;
+      color:#fff;
+      user-select: none;
+    }
+    input[type=color]{
+      width:36px;
+      height:28px;
+      padding:0;
+      border:0;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    select {
+      background: #333;
+      color: white;
+      border: 1px solid #555;
+      border-radius: 4px;
+      padding: 4px;
+      font-size: 13px;
+    }
+    .footerTip{
+      position:fixed;
+      left:0;
+      right:0;
+      bottom:0;
+      padding:8px;
+      text-align:center;
+      color:#999;
+      font-size:12px;
+      background: rgba(0,0,0,0.2);
+      user-select: none;
+    }
+  </style>
+</head>
+<body>
+<div id="app">
+  <div id="container"></div>
 
+  <div class="hud">
+    <button id="timeBtn" class="btn small">Остановить время</button>
+    <!-- Кнопка "Взять / Бросить" удалена, т.к. теперь перетаскивание --><button id="openEditor" class="btn small">Открыть редактор</button>
+  </div>
+  
+  <div id="joystick"></div>
+  
+  <div id="thruster">
+    <div id="upBtn" class="thr-btn">▲</div>
+    <div id="downBtn" class="thr-btn">▼</div>
+  </div>
+  
+  <div id="editorPanel" style="display:none">
+    <label>Примитив:</label>
+    <select id="primType"><option value="box">Box</option><option value="sphere">Sphere</option></select>
+    <label>Цвет:</label>
+    <input type="color" id="primColor" value="#ffcc00">
+    <button id="addPrim" class="btn small">Создать объект</button> <!-- Изменил текст --><button id="closeEditor" class="btn small">Закр.</button>
+  </div>
+  
+  <div class="footerTip">
+    Управление: джойстик слева — движение, кнопки справа — вверх/вниз. <br/>
+    Долгое касание на объекте — перетащить. Короткое касание — создать объект в точке (если активирован режим создания).
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.156.0/build/three.min.js"></script>
+<script type="module">
+  import * as CANNON from 'https://cdn.jsdelivr.net/npm/cannon-es@0.20.0/dist/cannon-es.js';
+
+  // --- Сцена и рендер ---
+  const container = document.getElementById('container');
+  const renderer = new THREE.WebGLRenderer({antialias:true, alpha:false});
+  renderer.setPixelRatio(window.devicePixelRatio || 1);
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  container.appendChild(renderer.domElement);
+
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x0a0f1a);
+  scene.fog = new THREE.Fog(0x0a0f1a, 50, 200);
+
+  const camera = new THREE.PerspectiveCamera(70, window.innerWidth/window.innerHeight, 0.1, 1000);
+
+  // light
+  const hemi = new THREE.HemisphereLight(0xffffee, 0x222233, 0.9);
+  scene.add(hemi);
+  const dir = new THREE.DirectionalLight(0xffffff, 0.6);
+  dir.position.set(5,10,2);
+  scene.add(dir);
+
+  // --- Физика ---
+  const world = new CANNON.World({gravity: new CANNON.Vec3(0,-9.82,0)});
+  world.broadphase = new CANNON.SAPBroadphase(world);
+  world.solver.iterations = 8;
+  
+  // Материалы физики
+  const groundMatCannon = new CANNON.Material("groundMaterial");
+  const objectMatCannon = new CANNON.Material("objectMaterial");
+  const contactMaterial = new CANNON.ContactMaterial(groundMatCannon, objectMatCannon, {
+      friction: 0.3,
+      restitution: 0.3,
+  });
+  world.addContactMaterial(contactMaterial);
+
+
+  // Пол — бесконечная платформа
+  const groundGeo = new THREE.PlaneGeometry(2000,2000,1,1);
+  const groundMat = new THREE.MeshStandardMaterial({color:0x1a2333, metalness:0.1, roughness:0.9});
+  const groundMesh = new THREE.Mesh(groundGeo, groundMat);
+  groundMesh.rotation.x = -Math.PI/2;
+  scene.add(groundMesh);
+
+  const groundBody = new CANNON.Body({
+    mass:0, 
+    shape: new CANNON.Plane(),
+    material: groundMatCannon 
+  });
+  groundBody.quaternion.setFromEuler(-Math.PI/2,0,0);
+  world.addBody(groundBody);
+
+  const grid = new THREE.GridHelper(2000, 200, 0x223344, 0x182028);
+  grid.material.transparent = true;
+  grid.material.opacity = 0.5;
+  scene.add(grid);
+
+  // --- Игрок ---
+  const player = {
+    mesh: new THREE.Object3D(),
+    velocity: new THREE.Vector3(0,0,0),
+    radius: 0.6
+  };
+  player.mesh.position.set(0,3,5);
+  scene.add(player.mesh);
+  camera.position.set(0,0,0);
+  player.mesh.add(camera);
+
+  // --- Список динамических объектов ---
+  const dynamic = [];
+  const raycaster = new THREE.Raycaster(); // Создаем один раз
+
+  function addPhysicalBox(pos, size, color){
+    const geo = new THREE.BoxGeometry(size.x,size.y,size.z);
+    const mat = new THREE.MeshStandardMaterial({color:color});
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.castShadow = true; mesh.receiveShadow = true;
+    mesh.position.copy(pos);
+    scene.add(mesh);
+
+    const shape = new CANNON.Box(new CANNON.Vec3(size.x/2,size.y/2,size.z/2));
+    const body = new CANNON.Body({
+      mass:1, 
+      shape:shape, 
+      position: new CANNON.Vec3(pos.x,pos.y,pos.z),
+      material: objectMatCannon 
+    });
+    world.addBody(body);
+
+    dynamic.push({mesh, body});
+    return {mesh, body};
+  }
+
+  function addPhysicalSphere(pos, r, color){
+    const geo = new THREE.SphereGeometry(r, 24, 18);
+    const mat = new THREE.MeshStandardMaterial({color:color});
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.position.copy(pos);
+    scene.add(mesh);
+
+    const shape = new CANNON.Sphere(r);
+    const body = new CANNON.Body({
+      mass:1, 
+      shape:shape, 
+      position:new CANNON.Vec3(pos.x,pos.y,pos.z),
+      material: objectMatCannon 
+    });
+    world.addBody(body);
+
+    dynamic.push({mesh, body});
+    return {mesh, body};
+  }
+
+  // Добавим несколько базовых объектов
+  addPhysicalBox(new THREE.Vector3(2,6,-2), new THREE.Vector3(1,1,1), 0xff3333);
+  addPhysicalBox(new THREE.Vector3(-3,8,1), new THREE.Vector3(1.6,0.6,1), 0x33ff88);
+  addPhysicalSphere(new THREE.Vector3(0,10,0), 0.7, 0x3399ff);
+
+  // --- Время (остановка времени) ---
+  let timeStopped = false;
+  const timeBtn = document.getElementById('timeBtn');
+  timeBtn.addEventListener('click', ()=>{ 
+    timeStopped = !timeStopped; 
+    timeBtn.textContent = timeStopped? 'Время: ПАУЗА' : 'Остановить время'; 
+    timeBtn.style.color = timeStopped ? '#ffcc00' : '#fff';
+  });
+
+  // --- Перетаскивание объектов ---
+  let draggedObject = null;
+  let dragOffset = new THREE.Vector3(); // Смещение от центра объекта до точки касания
+  let dragDistance = 0; // Расстояние от камеры до перетаскиваемого объекта
+
+  function startDragging(obj, point) {
+    draggedObject = obj;
+    // Делаем тело статичным для прямого управления позицией
+    draggedObject.body.mass = 0;
+    draggedObject.body.type = CANNON.Body.STATIC;
+    draggedObject.body.updateMassProperties();
+    draggedObject.body.quaternion.set(0,0,0,1); // Сбрасываем вращение
+    draggedObject.mesh.quaternion.set(0,0,0,1);
+
+    dragOffset.subVectors(obj.mesh.position, point);
+    dragDistance = camera.position.distanceTo(obj.mesh.position);
+    
+    // Визуальная обратная связь
+    if (draggedObject.mesh.material.emissive) {
+        draggedObject.mesh.material.emissive.setHex(0x333333);
+    }
+  }
+
+  function stopDragging() {
+    if (draggedObject) {
+      draggedObject.body.mass = 1;
+      draggedObject.body.type = CANNON.Body.DYNAMIC;
+      draggedObject.body.updateMassProperties();
+      draggedObject.body.wakeUp();
+
+      // Сбрасываем визуальную обратную связь
+      if (draggedObject.mesh.material.emissive) {
+          draggedObject.mesh.material.emissive.setHex(0x000000);
+      }
+      draggedObject = null;
+    }
+  }
+
+  function updateDraggedObject(screenX, screenY) {
+    if (!draggedObject) return;
+
+    // Преобразуем координаты экрана в нормированные координаты устройства (NDC)
+    const mouse = new THREE.Vector2(
+      (screenX / window.innerWidth) * 2 - 1,
+      -(screenY / window.innerHeight) * 2 + 1
+    );
+
+    // Устанавливаем луч из камеры
+    raycaster.setFromCamera(mouse, camera);
+
+    // Расчет точки в 3D-пространстве на заданном расстоянии от камеры
+    const targetPoint = new THREE.Vector3();
+    raycaster.ray.at(dragDistance, targetPoint); // Используем сохраненное расстояние
+
+    // Применяем смещение
+    targetPoint.add(dragOffset);
+
+    // Ограничиваем Y, чтобы объект не улетал слишком высоко или низко
+    targetPoint.y = Math.max(0.5, Math.min(20, targetPoint.y));
+
+    draggedObject.mesh.position.copy(targetPoint);
+    draggedObject.body.position.set(targetPoint.x, targetPoint.y, targetPoint.z);
+  }
+
+  // --- Редактор (открытие/закрытие) ---
+  document.getElementById('openEditor').addEventListener('click', ()=>{
+    document.getElementById('editorPanel').style.display='flex';
+  });
+
+  // --- Режим создания объектов по тапу ---
+  let createMode = false;
+  const addPrimBtn = document.getElementById('addPrim');
+  addPrimBtn.addEventListener('click', ()=>{
+    createMode = !createMode;
+    addPrimBtn.classList.toggle('active', createMode);
+    addPrimBtn.textContent = createMode ? 'Отменить создание' : 'Создать объект';
+  });
+  // При закрытии редактора, отключаем режим создания
+  document.getElementById('closeEditor').addEventListener('click', ()=>{
+    document.getElementById('editorPanel').style.display='none';
+    if (createMode) {
+      createMode = false;
+      addPrimBtn.classList.remove('active');
+      addPrimBtn.textContent = 'Создать объект';
+    }
+  });
+
+
+  // --- Виртуальный джойстик (управление) ---
+  const joy = document.getElementById('joystick');
+  const joyIndicator = joy.querySelector('::before');
+  let joyState = {active:false, x:0, y:0};
+  
+  joy.addEventListener('touchstart', (e)=>{joyState.active=true; e.preventDefault(); updateJoystick(e.touches[0]);}, {passive: false});
+  joy.addEventListener('touchend', (e)=>{
+    joyState.active=false; 
+    joyState.x=0; 
+    joyState.y=0; 
+    e.preventDefault();
+    if (joyIndicator) joyIndicator.style.transform = 'translate(-50%, -50%)';
+  }, {passive: false});
+  joy.addEventListener('touchmove', (e)=>{
+    if (!joyState.active) return;
+    e.preventDefault();
+    updateJoystick(e.touches[0]);
+  }, {passive: false});
+
+  function updateJoystick(touch) {
+    const r = joy.getBoundingClientRect();
+    const cx = r.left + r.width/2, cy = r.top + r.height/2;
+    const dx = (touch.clientX - cx)/ (r.width/2);
+    const dy = (touch.clientY - cy)/ (r.height/2);
+    joyState.x = Math.max(-1, Math.min(1, dx));
+    joyState.y = Math.max(-1, Math.min(1, dy));
+
+    if (joyIndicator) {
+        joyIndicator.style.transform = `translate(${joyState.x * 35 - 50}%, ${joyState.y * 35 - 50}%)`; // Уменьшил диапазон движения
+    }
+  }
+
+  const upBtn = document.getElementById('upBtn');
+  const downBtn = document.getElementById('downBtn');
+  let ascend=0;
+  upBtn.addEventListener('touchstart', (e)=>{ascend=1; e.preventDefault();}, {passive: false}); 
+  upBtn.addEventListener('touchend', (e)=>{ascend=0; e.preventDefault();}, {passive: false});
+  downBtn.addEventListener('touchstart', (e)=>{ascend=-1; e.preventDefault();}, {passive: false}); 
+  downBtn.addEventListener('touchend', (e)=>{ascend=0; e.preventDefault();}, {passive: false});
+
+
+  function getForwardVector(){
+    const v = new THREE.Vector3(0,0,-1);
+    v.applyQuaternion(player.mesh.quaternion);
+    return v.normalize();
+  }
+  
+  function handlePlayer(dt){
+    const turnSpeed = 1.5;
+    player.mesh.rotation.y -= joyState.x * turnSpeed * dt;
+
+    const moveSpeed = 6;
+    const forward = getForwardVector();
+    const moveZ = forward.clone().multiplyScalar(-joyState.y * moveSpeed * dt);
+    
+    player.mesh.position.add(moveZ);
+    player.mesh.position.y += ascend * 4 * dt;
+    
+    if(player.mesh.position.y < 1.6) player.mesh.position.y = 1.6;
+  }
+
+  // --- Главный цикл ---
+  let last = performance.now();
+  const fixedTimeStep = 1 / 60; 
+
+  function animate(){
+    requestAnimationFrame(animate);
+
+    const now = performance.now();
+    let dt = (now - last) / 1000;
+    last = now;
+
+    if (dt > 0.1) dt = 0.1; 
+
+    handlePlayer(dt);
+    if (draggedObject) {
+      // Когда перетаскивается, движение игрока не должно влиять на объект
+      // updateDraggedObject вызывается в touchmove/touchend
+    }
+
+
+    if(!timeStopped){
+      world.step(fixedTimeStep, dt, 3);
+      for(const d of dynamic){
+        // Только если объект не перетаскивается
+        if (d !== draggedObject) { 
+          d.mesh.position.copy(d.body.position);
+          d.mesh.quaternion.copy(d.body.quaternion);
+        }
+      }
+    }
+
+    renderer.render(scene, camera);
+  }
+  animate();
+
+  // --- Адаптация к размеру ---
+  window.addEventListener('resize', ()=>{
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    camera.aspect = window.innerWidth/window.innerHeight;
+    camera.updateProjectionMatrix();
+  });
+
+  // --- Оптимизация ---
+  renderer.shadowMap.enabled = false;
+  if(window.devicePixelRatio>2) renderer.setPixelRatio(2);
+  
+  // --- Управление жестами: Long Press для перетаскивания, Tap для создания ---
+  
+  let lastTouchY = null;
+  let isControllingUI = false;
+  let touchStartTime = 0;
+  let initialTouchPoint = {x:0, y:0};
+  const LONG_PRESS_TIME = 300; // ms
+  const DRAG_THRESHOLD = 5; // pixels
+  let isLongPress = false;
+  let currentTouchObject = null; // Объект, на который началось касание
+
+  // ИСПРАВЛЕНО: Слушатель на весь документ
+  document.addEventListener('touchstart', (e) => {
+    // Отменяем, если мультитач
+    if (e.touches.length > 1) {
+      isControllingUI = true; // Блокируем камеру
+      lastTouchY = null;
+      touchStartTime = 0;
+      return;
+    }
+
+    const touch = e.touches[0];
+    initialTouchPoint = {x: touch.clientX, y: touch.clientY};
+    touchStartTime = performance.now();
+    
+    const target = e.target;
+    // Проверяем, не началось ли касание на одном из элементов UI
+    if (target.closest('#joystick') || target.closest('#thruster') || target.closest('.hud') || target.closest('#editorPanel')) {
+      isControllingUI = true;
+      lastTouchY = null;
+    } else {
+      isControllingUI = false;
+      lastTouchY = touch.clientY;
+
+      // Проверяем, попали ли на объект для перетаскивания
+      const mouse = new THREE.Vector2(
+        (touch.clientX / window.innerWidth) * 2 - 1,
+        -(touch.clientY / window.innerHeight) * 2 + 1
+      );
+      raycaster.setFromCamera(mouse, camera);
+      const meshes = dynamic.map(d=>d.mesh);
+      const intersects = raycaster.intersectObjects(meshes);
+
+      if (intersects.length > 0) {
+        currentTouchObject = dynamic.find(d => d.mesh === intersects[0].object);
+        // Сохраняем dragOffset для точного захвата
+        dragOffset.subVectors(currentTouchObject.mesh.position, intersects[0].point);
+        dragDistance = camera.position.distanceTo(currentTouchObject.mesh.position);
+      } else {
+        currentTouchObject = null;
+      }
+    }
+  }, {passive: false});
+
+  // ИСПРАВЛЕНО: Движение
+  document.addEventListener('touchmove', (e) => {
+    if (e.touches.length > 1 || isControllingUI) {
+      lastTouchY = null;
+      return;
+    }
+
+    const touch = e.touches[0];
+    const dx = touch.clientX - initialTouchPoint.x;
+    const dy = touch.clientY - initialTouchPoint.y;
+    const distanceMoved = Math.sqrt(dx*dx + dy*dy);
+
+    // Логика Long Press / Dragging:
+    if (currentTouchObject && !isLongPress) {
+      const isTimePassed = performance.now() - touchStartTime > LONG_PRESS_TIME;
+      const isMovedEnough = distanceMoved > DRAG_THRESHOLD;
+
+      // Активируем перетаскивание, если прошло время ИЛИ если движение было достаточным (для более отзывчивого перетаскивания)
+      if (isTimePassed || isMovedEnough) {
+          isLongPress = true;
+          startDragging(currentTouchObject, currentTouchObject.mesh.position);
+      }
+    }
+
+    if (draggedObject) {
+        updateDraggedObject(touch.clientX, touch.clientY);
+        e.preventDefault(); // Предотвращаем скролл/масштаб во время перетаскивания
+    } else if (lastTouchY !== null) { // Если не перетаскиваем и не UI, то вращаем камеру
+      const deltaY = touch.clientY - lastTouchY;
+      lastTouchY = touch.clientY;
+      
+      camera.rotation.x += deltaY * 0.003; 
+      camera.rotation.x = Math.max(-1.4, Math.min(1.4, camera.rotation.x));
+      e.preventDefault(); // Предотвращаем скролл/масштаб во время вращения
+    }
+  }, {passive: false});
+
+  // ИСПРАВЛЕНО: Конец касания
+  document.addEventListener('touchend', (e) => {
+    // Если отпустили палец и это не был long press/drag, это короткий тап
+    if (e.touches.length === 0 && !isControllingUI && !isLongPress) {
+        const tapDuration = performance.now() - touchStartTime;
+        const dx = e.changedTouches[0].clientX - initialTouchPoint.x;
+        const dy = e.changedTouches[0].clientY - initialTouchPoint.y;
+        const distanceMoved = Math.sqrt(dx*dx + dy*dy);
+
+        // Если это был короткий тап (не лонг-пресс и не сильное движение)
+        if (tapDuration < LONG_PRESS_TIME && distanceMoved < DRAG_THRESHOLD) {
+            // Если режим создания активен, создаем объект
+            if (<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <title>Бесконечная платформа — полёт + перетаскивание (моб.)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    html,body{
+      height:100%;
+      margin:0;
+      background:#0b1020;
+      color:#ddd;
+      font-family:'Inter', Arial, sans-serif;
+      overflow: hidden;
+    }
+    #app{
+      position:fixed;
+      inset:0;
+      display:flex;
+      flex-direction:column;
+    }
+    canvas{
+      display:block;
+      width:100%;
+      height:100%;
+    }
+    .hud{
+      position:fixed;
+      right:10px;
+      top:10px;
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      z-index:20;
+    }
+    .btn{
+      background:rgba(0,0,0,0.4);
+      backdrop-filter:blur(6px);
+      -webkit-backdrop-filter:blur(6px);
+      border:1px solid rgba(255,255,255,0.06);
+      padding:8px 10px;
+      border-radius:10px;
+      color:#fff;
+      font-size:14px;
+      font-weight: 500;
+      cursor: pointer;
+      user-select: none;
+      transition: background 0.2s, border-color 0.2s, color 0.2s;
+    }
+    .btn:active {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+    .btn.active { /* Для активных режимов, например, создания */
+        color: #ffcc00;
+        border-color: #ffcc00;
+    }
+    .small{
+      padding:6px 8px;
+      font-size:13px;
+    }
+    #joystick{
+      position:fixed;
+      left:12px;
+      bottom:12px;
+      width:120px;
+      height:120px;
+      border-radius:60px;
+      background:rgba(255,255,255,0.04);
+      z-index:20;
+      touch-action:none;
+      user-select: none;
+    }
+    #joystick::before {
+      content: '';
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 50px; /* Немного уменьшил */
+      height: 50px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      transition: transform 0.1s;
+    }
+    #thruster{
+      position:fixed;
+      right:12px;
+      bottom:12px;
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      z-index:20;
+      user-select: none;
+    }
+    .thr-btn{
+      width:72px;
+      height:48px;
+      border-radius:8px;
+      background:rgba(255,255,255,0.04);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      touch-action:none;
+      color: #fff;
+      font-size: 20px;
+      transition: background 0.1s;
+    }
+    .thr-btn:active {
+      background: rgba(255, 255, 255, 0.1);
+    }
+    #editorPanel{
+      position:fixed;
+      left:50%;
+      top:8px;
+      transform:translateX(-50%);
+      background:rgba(0,0,0,0.55);
+      backdrop-filter:blur(6px);
+      -webkit-backdrop-filter:blur(6px);
+      padding:10px;
+      border-radius:10px;
+      z-index:30;
+      display:flex;
+      gap:8px;
+      align-items:center;
+    }
+    label{
+      font-size:13px;
+      color:#fff;
+      user-select: none;
+    }
+    input[type=color]{
+      width:36px;
+      height:28px;
+      padding:0;
+      border:0;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    select {
+      background: #333;
+      color: white;
+      border: 1px solid #555;
+      border-radius: 4px;
+      padding: 4px;
+      font-size: 13px;
+    }
+    .footerTip{
+      position:fixed;
+      left:0;
+      right:0;
+      bottom:0;
+      padding:8px;
+      text-align:center;
+      color:#999;
+      font-size:12px;
+      background: rgba(0,0,0,0.2);
+      user-select: none;
+    }
+  </style>
+</head>
+<body>
+<div id="app">
+  <div id="container"></div>
+
+  <div class="hud">
+    <button id="timeBtn" class="btn small">Остановить время</button>
+    <!-- Кнопка "Взять / Бросить" удалена, т.к. теперь перетаскивание --><button id="openEditor" class="btn small">Открыть редактор</button>
+  </div>
+  
+  <div id="joystick"></div>
+  
+  <div id="thruster">
+    <div id="upBtn" class="thr-btn">▲</div>
+    <div id="downBtn" class="thr-btn">▼</div>
+  </div>
+  
+  <div id="editorPanel" style="display:none">
+    <label>Примитив:</label>
+    <select id="primType"><option value="box">Box</option><option value="sphere">Sphere</option></select>
+    <label>Цвет:</label>
+    <input type="color" id="primColor" value="#ffcc00">
+    <button id="addPrim" class="btn small">Создать объект</button> <!-- Изменил текст --><button id="closeEditor" class="btn small">Закр.</button>
+  </div>
+  
+  <div class="footerTip">
+    Управление: джойстик слева — движение, кнопки справа — вверх/вниз. <br/>
+    Долгое касание на объекте — перетащить. Короткое касание — создать объект в точке (если активирован режим создания).
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.156.0/build/three.min.js"></script>
+<script type="module">
+  import * as CANNON from 'https://cdn.jsdelivr.net/npm/cannon-es@0.20.0/dist/cannon-es.js';
+
+  // --- Сцена и рендер ---
+  const container = document.getElementById('container');
+  const renderer = new THREE.WebGLRenderer({antialias:true, alpha:false});
+  renderer.setPixelRatio(window.devicePixelRatio || 1);
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  container.appendChild(renderer.domElement);
+
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x0a0f1a);
+  scene.fog = new THREE.Fog(0x0a0f1a, 50, 200);
+
+  const camera = new THREE.PerspectiveCamera(70, window.innerWidth/window.innerHeight, 0.1, 1000);
+
+  // light
+  const hemi = new THREE.HemisphereLight(0xffffee, 0x222233, 0.9);
+  scene.add(hemi);
+  const dir = new THREE.DirectionalLight(0xffffff, 0.6);
+  dir.position.set(5,10,2);
+  scene.add(dir);
+
+  // --- Физика ---
+  const world = new CANNON.World({gravity: new CANNON.Vec3(0,-9.82,0)});
+  world.broadphase = new CANNON.SAPBroadphase(world);
+  world.solver.iterations = 8;
+  
+  // Материалы физики
+  const groundMatCannon = new CANNON.Material("groundMaterial");
+  const objectMatCannon = new CANNON.Material("objectMaterial");
+  const contactMaterial = new CANNON.ContactMaterial(groundMatCannon, objectMatCannon, {
+      friction: 0.3,
+      restitution: 0.3,
+  });
+  world.addContactMaterial(contactMaterial);
+
+
+  // Пол — бесконечная платформа
+  const groundGeo = new THREE.PlaneGeometry(2000,2000,1,1);
+  const groundMat = new THREE.MeshStandardMaterial({color:0x1a2333, metalness:0.1, roughness:0.9});
+  const groundMesh = new THREE.Mesh(groundGeo, groundMat);
+  groundMesh.rotation.x = -Math.PI/2;
+  scene.add(groundMesh);
+
+  const groundBody = new CANNON.Body({
+    mass:0, 
+    shape: new CANNON.Plane(),
+    material: groundMatCannon 
+  });
+  groundBody.quaternion.setFromEuler(-Math.PI/2,0,0);
+  world.addBody(groundBody);
+
+  const grid = new THREE.GridHelper(2000, 200, 0x223344, 0x182028);
+  grid.material.transparent = true;
+  grid.material.opacity = 0.5;
+  scene.add(grid);
+
+  // --- Игрок ---
+  const player = {
+    mesh: new THREE.Object3D(),
+    velocity: new THREE.Vector3(0,0,0),
+    radius: 0.6
+  };
+  player.mesh.position.set(0,3,5);
+  scene.add(player.mesh);
+  camera.position.set(0,0,0);
+  player.mesh.add(camera);
+
+  // --- Список динамических объектов ---
+  const dynamic = [];
+  const raycaster = new THREE.Raycaster(); // Создаем один раз
+
+  function addPhysicalBox(pos, size, color){
+    const geo = new THREE.BoxGeometry(size.x,size.y,size.z);
+    const mat = new THREE.MeshStandardMaterial({color:color});
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.castShadow = true; mesh.receiveShadow = true;
+    mesh.position.copy(pos);
+    scene.add(mesh);
+
+    const shape = new CANNON.Box(new CANNON.Vec3(size.x/2,size.y/2,size.z/2));
+    const body = new CANNON.Body({
+      mass:1, 
+      shape:shape, 
+      position: new CANNON.Vec3(pos.x,pos.y,pos.z),
+      material: objectMatCannon 
+    });
+    world.addBody(body);
+
+    dynamic.push({mesh, body});
+    return {mesh, body};
+  }
+
+  function addPhysicalSphere(pos, r, color){
+    const geo = new THREE.SphereGeometry(r, 24, 18);
+    const mat = new THREE.MeshStandardMaterial({color:color});
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.position.copy(pos);
+    scene.add(mesh);
+
+    const shape = new CANNON.Sphere(r);
+    const body = new CANNON.Body({
+      mass:1, 
+      shape:shape, 
+      position:new CANNON.Vec3(pos.x,pos.y,pos.z),
+      material: objectMatCannon 
+    });
+    world.addBody(body);
+
+    dynamic.push({mesh, body});
+    return {mesh, body};
+  }
+
+  // Добавим несколько базовых объектов
+  addPhysicalBox(new THREE.Vector3(2,6,-2), new THREE.Vector3(1,1,1), 0xff3333);
+  addPhysicalBox(new THREE.Vector3(-3,8,1), new THREE.Vector3(1.6,0.6,1), 0x33ff88);
+  addPhysicalSphere(new THREE.Vector3(0,10,0), 0.7, 0x3399ff);
+
+  // --- Время (остановка времени) ---
+  let timeStopped = false;
+  const timeBtn = document.getElementById('timeBtn');
+  timeBtn.addEventListener('click', ()=>{ 
+    timeStopped = !timeStopped; 
+    timeBtn.textContent = timeStopped? 'Время: ПАУЗА' : 'Остановить время'; 
+    timeBtn.style.color = timeStopped ? '#ffcc00' : '#fff';
+  });
+
+  // --- Перетаскивание объектов ---
+  let draggedObject = null;
+  let dragOffset = new THREE.Vector3(); // Смещение от центра объекта до точки касания
+  let dragDistance = 0; // Расстояние от камеры до перетаскиваемого объекта
+
+  function startDragging(obj, point) {
+    draggedObject = obj;
+    // Делаем тело статичным для прямого управления позицией
+    draggedObject.body.mass = 0;
+    draggedObject.body.type = CANNON.Body.STATIC;
+    draggedObject.body.updateMassProperties();
+    draggedObject.body.quaternion.set(0,0,0,1); // Сбрасываем вращение
+    draggedObject.mesh.quaternion.set(0,0,0,1);
+
+    dragOffset.subVectors(obj.mesh.position, point);
+    dragDistance = camera.position.distanceTo(obj.mesh.position);
+    
+    // Визуальная обратная связь
+    if (draggedObject.mesh.material.emissive) {
+        draggedObject.mesh.material.emissive.setHex(0x333333);
+    }
+  }
+
+  function stopDragging() {
+    if (draggedObject) {
+      draggedObject.body.mass = 1;
+      draggedObject.body.type = CANNON.Body.DYNAMIC;
+      draggedObject.body.updateMassProperties();
+      draggedObject.body.wakeUp();
+
+      // Сбрасываем визуальную обратную связь
+      if (draggedObject.mesh.material.emissive) {
+          draggedObject.mesh.material.emissive.setHex(0x000000);
+      }
+      draggedObject = null;
+    }
+  }
+
+  function updateDraggedObject(screenX, screenY) {
+    if (!draggedObject) return;
+
+    // Преобразуем координаты экрана в нормированные координаты устройства (NDC)
+    const mouse = new THREE.Vector2(
+      (screenX / window.innerWidth) * 2 - 1,
+      -(screenY / window.innerHeight) * 2 + 1
+    );
+
+    // Устанавливаем луч из камеры
+    raycaster.setFromCamera(mouse, camera);
+
+    // Расчет точки в 3D-пространстве на заданном расстоянии от камеры
+    const targetPoint = new THREE.Vector3();
+    raycaster.ray.at(dragDistance, targetPoint); // Используем сохраненное расстояние
+
+    // Применяем смещение
+    targetPoint.add(dragOffset);
+
+    // Ограничиваем Y, чтобы объект не улетал слишком высоко или низко
+    targetPoint.y = Math.max(0.5, Math.min(20, targetPoint.y));
+
+    draggedObject.mesh.position.copy(targetPoint);
+    draggedObject.body.position.set(targetPoint.x, targetPoint.y, targetPoint.z);
+  }
+
+  // --- Редактор (открытие/закрытие) ---
+  document.getElementById('openEditor').addEventListener('click', ()=>{
+    document.getElementById('editorPanel').style.display='flex';
+  });
+
+  // --- Режим создания объектов по тапу ---
+  let createMode = false;
+  const addPrimBtn = document.getElementById('addPrim');
+  addPrimBtn.addEventListener('click', ()=>{
+    createMode = !createMode;
+    addPrimBtn.classList.toggle('active', createMode);
+    addPrimBtn.textContent = createMode ? 'Отменить создание' : 'Создать объект';
+  });
+  // При закрытии редактора, отключаем режим создания
+  document.getElementById('closeEditor').addEventListener('click', ()=>{
+    document.getElementById('editorPanel').style.display='none';
+    if (createMode) {
+      createMode = false;
+      addPrimBtn.classList.remove('active');
+      addPrimBtn.textContent = 'Создать объект';
+    }
+  });
+
+
+  // --- Виртуальный джойстик (управление) ---
+  const joy = document.getElementById('joystick');
+  const joyIndicator = joy.querySelector('::before');
+  let joyState = {active:false, x:0, y:0};
+  
+  joy.addEventListener('touchstart', (e)=>{joyState.active=true; e.preventDefault(); updateJoystick(e.touches[0]);}, {passive: false});
+  joy.addEventListener('touchend', (e)=>{
+    joyState.active=false; 
+    joyState.x=0; 
+    joyState.y=0; 
+    e.preventDefault();
+    if (joyIndicator) joyIndicator.style.transform = 'translate(-50%, -50%)';
+  }, {passive: false});
+  joy.addEventListener('touchmove', (e)=>{
+    if (!joyState.active) return;
+    e.preventDefault();
+    updateJoystick(e.touches[0]);
+  }, {passive: false});
+
+  function updateJoystick(touch) {
+    const r = joy.getBoundingClientRect();
+    const cx = r.left + r.width/2, cy = r.top + r.height/2;
+    const dx = (touch.clientX - cx)/ (r.width/2);
+    const dy = (touch.clientY - cy)/ (r.height/2);
+    joyState.x = Math.max(-1, Math.min(1, dx));
+    joyState.y = Math.max(-1, Math.min(1, dy));
+
+    if (joyIndicator) {
+        joyIndicator.style.transform = `translate(${joyState.x * 35 - 50}%, ${joyState.y * 35 - 50}%)`; // Уменьшил диапазон движения
+    }
+  }
+
+  const upBtn = document.getElementById('upBtn');
+  const downBtn = document.getElementById('downBtn');
+  let ascend=0;
+  upBtn.addEventListener('touchstart', (e)=>{ascend=1; e.preventDefault();}, {passive: false}); 
+  upBtn.addEventListener('touchend', (e)=>{ascend=0; e.preventDefault();}, {passive: false});
+  downBtn.addEventListener('touchstart', (e)=>{ascend=-1; e.preventDefault();}, {passive: false}); 
+  downBtn.addEventListener('touchend', (e)=>{ascend=0; e.preventDefault();}, {passive: false});
+
+
+  function getForwardVector(){
+    const v = new THREE.Vector3(0,0,-1);
+    v.applyQuaternion(player.mesh.quaternion);
+    return v.normalize();
+  }
+  
+  function handlePlayer(dt){
+    const turnSpeed = 1.5;
+    player.mesh.rotation.y -= joyState.x * turnSpeed * dt;
+
+    const moveSpeed = 6;
+    const forward = getForwardVector();
+    const moveZ = forward.clone().multiplyScalar(-joyState.y * moveSpeed * dt);
+    
+    player.mesh.position.add(moveZ);
+    player.mesh.position.y += ascend * 4 * dt;
+    
+    if(player.mesh.position.y < 1.6) player.mesh.position.y = 1.6;
+  }
+
+  // --- Главный цикл ---
+  let last = performance.now();
+  const fixedTimeStep = 1 / 60; 
+
+  function animate(){
+    requestAnimationFrame(animate);
+
+    const now = performance.now();
+    let dt = (now - last) / 1000;
+    last = now;
+
+    if (dt > 0.1) dt = 0.1; 
+
+    handlePlayer(dt);
+    if (draggedObject) {
+      // Когда перетаскивается, движение игрока не должно влиять на объект
+      // updateDraggedObject вызывается в touchmove/touchend
+    }
+
+
+    if(!timeStopped){
+      world.step(fixedTimeStep, dt, 3);
+      for(const d of dynamic){
+        // Только если объект не перетаскивается
+        if (d !== draggedObject) { 
+          d.mesh.position.copy(d.body.position);
+          d.mesh.quaternion.copy(d.body.quaternion);
+        }
+      }
+    }
+
+    renderer.render(scene, camera);
+  }
+  animate();
+
+  // --- Адаптация к размеру ---
+  window.addEventListener('resize', ()=>{
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    camera.aspect = window.innerWidth/window.innerHeight;
+    camera.updateProjectionMatrix();
+  });
+
+  // --- Оптимизация ---
+  renderer.shadowMap.enabled = false;
+  if(window.devicePixelRatio>2) renderer.setPixelRatio(2);
+  
+  // --- Управление жестами: Long Press для перетаскивания, Tap для создания ---
+  
+  let lastTouchY = null;
+  let isControllingUI = false;
+  let touchStartTime = 0;
+  let initialTouchPoint = {x:0, y:0};
+  const LONG_PRESS_TIME = 300; // ms
+  const DRAG_THRESHOLD = 5; // pixels
+  let isLongPress = false;
+  let currentTouchObject = null; // Объект, на который началось касание
+
+  // ИСПРАВЛЕНО: Слушатель на весь документ
+  document.addEventListener('touchstart', (e) => {
+    // Отменяем, если мультитач
+    if (e.touches.length > 1) {
+      isControllingUI = true; // Блокируем камеру
+      lastTouchY = null;
+      touchStartTime = 0;
+      return;
+    }
+
+    const touch = e.touches[0];
+    initialTouchPoint = {x: touch.clientX, y: touch.clientY};
+    touchStartTime = performance.now();
+    
+    const target = e.target;
+    // Проверяем, не началось ли касание на одном из элементов UI
+    if (target.closest('#joystick') || target.closest('#thruster') || target.closest('.hud') || target.closest('#editorPanel')) {
+      isControllingUI = true;
+      lastTouchY = null;
+    } else {
+      isControllingUI = false;
+      lastTouchY = touch.clientY;
+
+      // Проверяем, попали ли на объект для перетаскивания
+      const mouse = new THREE.Vector2(
+        (touch.clientX / window.innerWidth) * 2 - 1,
+        -(touch.clientY / window.innerHeight) * 2 + 1
+      );
+      raycaster.setFromCamera(mouse, camera);
+      const meshes = dynamic.map(d=>d.mesh);
+      const intersects = raycaster.intersectObjects(meshes);
+
+      if (intersects.length > 0) {
+        currentTouchObject = dynamic.find(d => d.mesh === intersects[0].object);
+        // Сохраняем dragOffset для точного захвата
+        dragOffset.subVectors(currentTouchObject.mesh.position, intersects[0].point);
+        dragDistance = camera.position.distanceTo(currentTouchObject.mesh.position);
+      } else {
+        currentTouchObject = null;
+      }
+    }
+  }, {passive: false});
+
+  // ИСПРАВЛЕНО: Движение
+  document.addEventListener('touchmove', (e) => {
+    if (e.touches.length > 1 || isControllingUI) {
+      lastTouchY = null;
+      return;
+    }
+
+    const touch = e.touches[0];
+    const dx = touch.clientX - initialTouchPoint.x;
+    const dy = touch.clientY - initialTouchPoint.y;
+    const distanceMoved = Math.sqrt(dx*dx + dy*dy);
+
+    // Логика Long Press / Dragging:
+    if (currentTouchObject && !isLongPress) {
+      const isTimePassed = performance.now() - touchStartTime > LONG_PRESS_TIME;
+      const isMovedEnough = distanceMoved > DRAG_THRESHOLD;
+
+      // Активируем перетаскивание, если прошло время ИЛИ если движение было достаточным (для более отзывчивого перетаскивания)
+      if (isTimePassed || isMovedEnough) {
+          isLongPress = true;
+          startDragging(currentTouchObject, currentTouchObject.mesh.position);
+      }
+    }
+
+    if (draggedObject) {
+        updateDraggedObject(touch.clientX, touch.clientY);
+        e.preventDefault(); // Предотвращаем скролл/масштаб во время перетаскивания
+    } else if (lastTouchY !== null) { // Если не перетаскиваем и не UI, то вращаем камеру
+      const deltaY = touch.clientY - lastTouchY;
+      lastTouchY = touch.clientY;
+      
+      camera.rotation.x += deltaY * 0.003; 
+      camera.rotation.x = Math.max(-1.4, Math.min(1.4, camera.rotation.x));
+      e.preventDefault(); // Предотвращаем скролл/масштаб во время вращения
+    }
+  }, {passive: false});
+
+  // ИСПРАВЛЕНО: Конец касания
+  document.addEventListener('touchend', (e) => {
+    // Если отпустили палец и это не был long press/drag, это короткий тап
+    if (e.touches.length === 0 && !isControllingUI && !isLongPress) {
+        const tapDuration = performance.now() - touchStartTime;
+        const dx = e.changedTouches[0].clientX - initialTouchPoint.x;
+        const dy = e.changedTouches[0].clientY - initialTouchPoint.y;
+        const distanceMoved = Math.sqrt(dx*dx + dy*dy);
+
+        // Если это был короткий тап (не лонг-пресс и не сильное движение)
+        if (tapDuration < LONG_PRESS_TIME && distanceMoved < DRAG_THRESHOLD) {
+            // Если режим создания активен, создаем объект
+            if (<!doctype html>
+
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <title>Бесконечная платформа — полёт + остановка времени (моб.)</title>
+  <style>
+    html,body{height:100%;margin:0;background:#0b1020;color:#ddd;font-family:Inter,Arial}
+    #app{position:fixed;inset:0;display:flex;flex-direction:column}
+    canvas{display:block;width:100%;height:100%}
+    .hud{position:fixed;right:10px;top:10px;display:flex;flex-direction:column;gap:8px;z-index:20}
+    .btn{background:rgba(0,0,0,0.4);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,0.06);padding:8px 10px;border-radius:10px;color:#fff;font-size:14px}
+    .small{padding:6px 8px;font-size:13px}
+    #joystick{position:fixed;left:12px;bottom:12px;width:120px;height:120px;border-radius:60px;background:rgba(255,255,255,0.04);z-index:20;touch-action:none}
+    #thruster{position:fixed;right:12px;bottom:12px;display:flex;flex-direction:column;gap:8px;z-index:20}
+    .thr-btn{width:72px;height:48px;border-radius:8px;background:rgba(255,255,255,0.04);display:flex;align-items:center;justify-content:center}
+    #editorPanel{position:fixed;left:50%;top:8px;transform:translateX(-50%);background:rgba(0,0,0,0.55);padding:10px;border-radius:10px;z-index:30;display:flex;gap:8px;align-items:center}
+    label{font-size:13px;color:#fff}
+    input[type=color]{width:36px;height:28px;padding:0;border:0}
+    .footerTip{position:fixed;left:0;right:0;bottom:0;padding:8px;text-align:center;color:#999;font-size:12px}
+  </style>
+</head>
+<body>
+<div id="app">
+  <div id="container"></div>
+  <div class="hud">
+    <button id="timeBtn" class="btn small">Остановить время</button>
+    <button id="pickBtn" class="btn small">Взять / Бросить</button>
+    <button id="openEditor" class="btn small">Открыть редактор</button>
+  </div>  <div id="joystick"></div>
+  <div id="thruster">
+    <div id="upBtn" class="thr-btn">▲</div>
+    <div id="downBtn" class="thr-btn">▼</div>
+  </div>  <div id="editorPanel" style="display:none">
+    <label>Примитив:</label>
+    <select id="primType"><option value="box">Box</option><option value="sphere">Sphere</option></select>
+    <label>Цвет:</label>
+    <input type="color" id="primColor" value="#ffcc00">
+    <button id="addPrim" class="btn small">Добавить</button>
+    <button id="closeEditor" class="btn small">Закр.</button>
+  </div>  <div class="footerTip">Управление: джойстик слева — движение, кнопки справа — вверх/вниз. Кнопка "Остановить время" замораживает все объекты (кроме тебя).</div>
+</div><!-- Библиотеки --><script src="https://cdn.jsdelivr.net/npm/three@0.156.0/build/three.min.js"></script><script src="https://cdn.jsdelivr.net/npm/three@0.156.0/examples/js/controls/OrbitControls.js"></script><script type="module">
+  // Импорт cannon-es через ESM-обёртку (jsdelivr поддерживает)
+  import * as CANNON from 'https://cdn.jsdelivr.net/npm/cannon-es@0.20.0/dist/cannon-es.js';
+
+  // --- Сцена и рендер ---
+  const container = document.getElementById('container');
+  const renderer = new THREE.WebGLRenderer({antialias:true,alpha:false});
+  renderer.setPixelRatio(window.devicePixelRatio || 1);
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  container.appendChild(renderer.domElement);
+
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x0a0f1a);
+
+  const camera = new THREE.PerspectiveCamera(70, window.innerWidth/window.innerHeight, 0.1, 1000);
+
+  // light
+  const hemi = new THREE.HemisphereLight(0xffffee, 0x222233, 0.9);
+  scene.add(hemi);
+  const dir = new THREE.DirectionalLight(0xffffff, 0.6);
+  dir.position.set(5,10,2);
+  scene.add(dir);
+
+  // --- Физика ---
+  const world = new CANNON.World({gravity: new CANNON.Vec3(0,-9.82,0)});
+  world.broadphase = new CANNON.SAPBroadphase(world);
+  world.solver.iterations = 8;
+
+  // Пол — бесконечная платформа (визуально большой повторяющийся плоск)
+  const groundGeo = new THREE.PlaneGeometry(2000,2000,1,1);
+  const groundMat = new THREE.MeshStandardMaterial({color:0x1a2333, metalness:0.1, roughness:0.9});
+  const groundMesh = new THREE.Mesh(groundGeo, groundMat);
+  groundMesh.rotation.x = -Math.PI/2;
+  scene.add(groundMesh);
+
+  const groundBody = new CANNON.Body({mass:0, shape: new CANNON.Plane()});
+  groundBody.quaternion.setFromEuler(-Math.PI/2,0,0);
+  world.addBody(groundBody);
+
+  // визуальные повторяющиеся сетки для ощущения бесконечности
+  const grid = new THREE.GridHelper(2000, 200, 0x223344, 0x182028);
+  scene.add(grid);
+
+  // --- Игрок (камерный контроллер + коллайдер) ---
+  const player = {
+    mesh: new THREE.Object3D(),
+    speed: 0.0,
+    velocity: new THREE.Vector3(0,0,0),
+    radius: 0.6
+  };
+  player.mesh.position.set(0,3,5);
+  scene.add(player.mesh);
+  camera.position.set(0,0,0);
+  player.mesh.add(camera);
+
+  // Игрок как кинематическое тело (не под действием физики сцены)
+  // Мы не делаем body у игрока в мире, чтобы он не рвался при остановке времени
+
+  // --- Список динамических объектов (подчиняются физике) ---
+  const dynamic = [];
+
+  function addPhysicalBox(pos, size, color){
+    const geo = new THREE.BoxGeometry(size.x,size.y,size.z);
+    const mat = new THREE.MeshStandardMaterial({color:color});
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.castShadow = true; mesh.receiveShadow = true;
+    mesh.position.copy(pos);
+    scene.add(mesh);
+
+    const shape = new CANNON.Box(new CANNON.Vec3(size.x/2,size.y/2,size.z/2));
+    const body = new CANNON.Body({mass:1, shape:shape, position: new CANNON.Vec3(pos.x,pos.y,pos.z)});
+    world.addBody(body);
+
+    dynamic.push({mesh, body});
+    return {mesh, body};
+  }
+
+  function addPhysicalSphere(pos, r, color){
+    const geo = new THREE.SphereGeometry(r, 24, 18);
+    const mat = new THREE.MeshStandardMaterial({color:color});
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.position.copy(pos);
+    scene.add(mesh);
+
+    const shape = new CANNON.Sphere(r);
+    const body = new CANNON.Body({mass:1, shape:shape, position:new CANNON.Vec3(pos.x,pos.y,pos.z)});
+    world.addBody(body);
+
+    dynamic.push({mesh, body});
+    return {mesh, body};
+  }
+
+  // Добавим несколько базовых объектов
+  addPhysicalBox(new THREE.Vector3(2,6,-2), new THREE.Vector3(1,1,1), 0xff3333);
+  addPhysicalBox(new THREE.Vector3(-3,8,1), new THREE.Vector3(1.6,0.6,1), 0x33ff88);
+  addPhysicalSphere(new THREE.Vector3(0,10,0), 0.7, 0x3399ff);
+
+  // --- Время (остановка времени) ---
+  let timeStopped = false;
+  const timeBtn = document.getElementById('timeBtn');
+  timeBtn.addEventListener('click', ()=>{ timeStopped = !timeStopped; timeBtn.textContent = timeStopped? 'Время: ПАУЗА' : 'Остановить время'; });
+
+  // --- Сбор / бросание предметов ---
+  let held = null;
+  const pickBtn = document.getElementById('pickBtn');
+  pickBtn.addEventListener('click', ()=>{
+    if(held){ // бросить
+      // даём импульс
+      held.body.mass = 1;
+      held.body.wakeUp();
+      const dir = getForwardVector();
+      held.body.position.set(player.mesh.position.x + dir.x*1.5, player.mesh.position.y + dir.y*1.0, player.mesh.position.z + dir.z*1.5);
+      held.body.velocity.set(dir.x*6, dir.y*2, dir.z*6);
+      held = null;
+      pickBtn.textContent = 'Взять / Бросить';
+    } else {
+      // raycast вперед, взять ближайший
+      const r = new THREE.Raycaster();
+      const dir = getForwardVector();
+      r.set(player.mesh.getWorldPosition(new THREE.Vector3()), dir);
+      const meshes = dynamic.map(d=>d.mesh);
+      const hits = r.intersectObjects(meshes);
+      if(hits.length>0 && hits[0].distance < 4){
+        const mesh = hits[0].object;
+        const obj = dynamic.find(d=>d.mesh===mesh);
+        if(obj){
+          // делаем тело статичным пока держим
+          obj.body.mass = 0;
+          obj.body.updateMassProperties();
+          obj.body.type = CANNON.Body.STATIC;
+          held = obj;
+          pickBtn.textContent = 'Бросить';
+        }
+      }
+    }
+  });
+
+  function updateHeld(){
+    if(held){
+      // позиционируем объект перед игроком
+      const forward = getForwardVector();
+      const target = player.mesh.position.clone().add(forward.multiplyScalar(1.5)).add(new THREE.Vector3(0,-0.2,0));
+      held.mesh.position.copy(target);
+      held.body.position.set(target.x,target.y,target.z);
+    }
+  }
+
+  // --- Простейший фронт для создания объектов (редактор) ---
+  const editorPanel = document.getElementById('editorPanel');
+  document.getElementById('openEditor').addEventListener('click', ()=>{editorPanel.style.display='flex';});
+  document.getElementById('closeEditor').addEventListener('click', ()=>{editorPanel.style.display='none';});
+  document.getElementById('addPrim').addEventListener('click', ()=>{
+    const type = document.getElementById('primType').value;
+    const color = document.getElementById('primColor').value;
+    const pos = player.mesh.position.clone().add(getForwardVector().multiplyScalar(2)).add(new THREE.Vector3((Math.random()-0.5)*1,1, (Math.random()-0.5)*1));
+    if(type==='box') addPhysicalBox(pos, new THREE.Vector3(1,1,1), color);
+    else addPhysicalSphere(pos, 0.6, color);
+  });
+
+  // --- Виртуальный джойстик (управление) ---
+  const joy = document.getElementById('joystick');
+  let joyState = {active:false, x:0, y:0};
+  joy.addEventListener('touchstart', (e)=>{joyState.active=true; e.preventDefault();});
+  joy.addEventListener('touchend', (e)=>{joyState.active=false; joyState.x=0; joyState.y=0; e.preventDefault();});
+  joy.addEventListener('touchmove', (e)=>{
+    const t = e.touches[0];
+    const r = joy.getBoundingClientRect();
+    const cx = r.left + r.width/2, cy = r.top + r.height/2;
+    const dx = (t.clientX - cx)/ (r.width/2);
+    const dy = (t.clientY - cy)/ (r.height/2);
+    joyState.x = Math.max(-1, Math.min(1, dx));
+    joyState.y = Math.max(-1, Math.min(1, dy));
+  });
+
+  const upBtn = document.getElementById('upBtn');
+  const downBtn = document.getElementById('downBtn');
+  let ascend=0;
+  upBtn.addEventListener('touchstart',()=>{ascend=1}); upBtn.addEventListener('touchend',()=>{ascend=0});
+  downBtn.addEventListener('touchstart',()=>{ascend=-1}); downBtn.addEventListener('touchend',()=>{ascend=0});
+
+  function getForwardVector(){
+    const v = new THREE.Vector3(0,0,-1);
+    v.applyQuaternion(player.mesh.quaternion);
+    return v.normalize();
+  }
+
+  // Склоняемся по вводу джойстика — поворачиваем игрока
+  function handlePlayer(dt){
+    const turnSpeed = 1.5;
+    // поворот по X (вправо-влево)
+    player.mesh.rotation.y -= joyState.x * turnSpeed * dt;
+
+    // движение вперед/назад
+    const moveSpeed = 6;
+    const forward = getForwardVector();
+    const move = forward.clone().multiplyScalar(-joyState.y * moveSpeed * dt);
+    player.mesh.position.add(move);
+    // вертикальное движение
+    player.mesh.position.y += ascend * 4 * dt;
+    // простая гравита для игрока: не слишком сильно падать
+    if(player.mesh.position.y < 1.6) player.mesh.position.y = 1.6;
+  }
+
+  // --- Подсветка HUD предмета выбора (не закрывает полэкрана) ---
+  // в этом примере у нас маленькое всплывающее окно при наведении — мы сделаем простую подсказку
+  // (реализовано в нижней части экрана)
+
+  // --- Главный цикл ---
+  let last = performance.now();
+  function animate(){
+    const now = performance.now();
+    const dt = Math.min(0.05,(now-last)/1000);
+    last = now;
+
+    handlePlayer(dt);
+    updateHeld();
+
+    // шаг физики: если время остановлено — не шагаем (все тела замерзнут)
+    if(!timeStopped){
+      world.step(1/60, dt, 3);
+      // синхронизируем меши с телами
+      for(const d of dynamic){
+        d.mesh.position.copy(d.body.position);
+        d.mesh.quaternion.copy(d.body.quaternion);
+      }
+    } else {
+      // если время остановлено, меши остаются в прежних позициях — но если пользователь что-то держит, он видит это
+    }
+
+    renderer.render(scene, camera);
+    requestAnimationFrame(animate);
+  }
+  animate();
+
+  // адаптация к размеру
+  window.addEventListener('resize', ()=>{
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    camera.aspect = window.innerWidth/window.innerHeight;
+    camera.updateProjectionMatrix();
+  });
+
+  // --- Вспомогательные: добавление партиклов (необязательно), минимальная оптимизация ---
+  renderer.shadowMap.enabled = false;
+
+  // --- Управление жестами: свайп для вращения камеры по вертикали ---
+  let lastTouchY = null;
+  document.addEventListener('touchstart', (e)=>{ if(e.touches.length===1){ lastTouchY = e.touches[0].clientY; } });
+  document.addEventListener('touchmove', (e)=>{
+    if(e.touches.length===1 && lastTouchY!==null){
+      const dy = e.touches[0].clientY - lastTouchY;
+      lastTouchY = e.touches[0].clientY;
+      // наклон камеры
+      camera.rotation.x += dy * 0.002;
+      camera.rotation.x = Math.max(-1.2, Math.min(1.2, camera.rotation.x));
+    }
+  });
+
+  // Простая автоматическая оптимизация для мобилок: уменьшать рендер-качество при слабых устройствах
+  if(window.devicePixelRatio>1.5) renderer.setPixelRatio(1.5);
+
+</script></body>
+</html>
